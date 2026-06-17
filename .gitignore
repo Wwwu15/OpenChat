@@ -1,0 +1,15 @@
+.gradle/
+.gradle-bootstrap/
+build/
+app/build/
+local.properties
+*.iml
+.idea/
+.kotlin/
+*.py
+backups/
+*.apk
+.superpowers/
+.reasonix/
+index.html
+screens/
