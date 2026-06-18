@@ -50,20 +50,14 @@ class ChatViewModel(
     private var lastAttempt: PendingSend? = null
     private var lastStableMessages: List<ChatUiMessage> = emptyList()
     private var lastStableAttachments: Map<Int, List<ChatUiAttachment>> = emptyMap()
+    private var observedConversationId: String? = null
+    private var messagesJob: Job? = null
     private var sendJob: Job? = null
     private val _uiState = MutableStateFlow(ChatUiState())
     val uiState: StateFlow<ChatUiState> = _uiState
 
     init {
-        initialConversationId?.let { id ->
-            viewModelScope.launch {
-                conversations.observeMessages(id).collect { messages ->
-                    _uiState.update { state ->
-                        if (state.isSending) state else state.withMessages(messages)
-                    }
-                }
-            }
-        }
+        observeConversation(initialConversationId)
     }
 
     fun updateInput(value: String) {
@@ -73,6 +67,7 @@ class ChatViewModel(
     fun newChat() {
         sendJob?.cancel()
         conversationId = UUID.randomUUID().toString()
+        observeConversation(null)
         _uiState.value = ChatUiState(messages = emptyList(), messageAttachments = emptyMap())
     }
 
@@ -200,6 +195,21 @@ class ChatViewModel(
 
     fun stopReceiving() {
         sendJob?.cancel()
+    }
+
+    private fun observeConversation(id: String?) {
+        observedConversationId = id
+        messagesJob?.cancel()
+        messagesJob = id?.let { conversationToObserve ->
+            viewModelScope.launch {
+                conversations.observeMessages(conversationToObserve).collect { messages ->
+                    if (observedConversationId != conversationToObserve) return@collect
+                    _uiState.update { state ->
+                        if (state.isSending) state else state.withMessages(messages)
+                    }
+                }
+            }
+        }
     }
 }
 

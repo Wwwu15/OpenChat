@@ -102,6 +102,58 @@ class ChatViewModelTest {
     }
 
     @Test
+    fun newChatIgnoresOldConversationEmissions() = runTest {
+        val dao = FakeConversationDao(
+            initialMessages = listOf(
+                MessageWithAttachments(
+                    message = MessageEntity(
+                        id = "m-1",
+                        conversationId = "conversation-1",
+                        role = "user",
+                        content = "hello",
+                        model = "model-a",
+                        createdAt = 1L
+                    ),
+                    attachments = emptyList()
+                )
+            )
+        )
+        val vm = ChatViewModel(
+            apiProfiles = ApiProfileRepository(FakeApiKeyStorage("key"), OpenAiClient()),
+            conversations = ConversationRepository(dao),
+            chat = ChatRepository(BlockingStreamApi()),
+            initialConversationId = "conversation-1"
+        )
+
+        runCurrent()
+        assertEquals(1, vm.uiState.value.messages.size)
+
+        vm.newChat()
+        runCurrent()
+        assertEquals(emptyList<ChatUiMessage>(), vm.uiState.value.messages)
+
+        dao.emitMessages(
+            listOf(
+                MessageWithAttachments(
+                    message = MessageEntity(
+                        id = "m-2",
+                        conversationId = "conversation-1",
+                        role = "assistant",
+                        content = "old conversation update",
+                        model = "model-a",
+                        createdAt = 2L
+                    ),
+                    attachments = emptyList()
+                )
+            )
+        )
+        runCurrent()
+
+        assertEquals(emptyList<ChatUiMessage>(), vm.uiState.value.messages)
+        assertEquals(emptyMap<Int, List<ChatUiAttachment>>(), vm.uiState.value.messageAttachments)
+    }
+
+    @Test
     fun attachmentOnlySendStartsRequestAndClearsComposerState() = runTest {
         val api = RecordingSingleResponseApi("done")
         val vm = ChatViewModel(
