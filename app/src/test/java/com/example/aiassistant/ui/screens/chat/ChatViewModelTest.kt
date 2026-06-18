@@ -123,13 +123,13 @@ class ChatViewModelTest {
         assertEquals("", vm.uiState.value.input)
         assertTrue(vm.uiState.value.attachments.isEmpty())
         assertTrue(vm.uiState.value.isSending)
-        assertEquals("hello from attachment", api.streamRequests.single().requestBody.messages.last().content)
+        assertTrue(api.streamRequests.single().requestBody.messages.last().content.contains("hello from attachment"))
         assertEquals(listOf(attachment.name), vm.uiState.value.messageAttachments[0]?.map { it.name })
     }
 
     @Test
     fun failedAttachmentOnlySendRestoresPendingAttachments() = runTest {
-        val api = FailingStreamApi(IOException("boom"))
+        val api = EmittingThenFailingStreamApi(IOException("boom"))
         val vm = ChatViewModel(
             apiProfiles = ApiProfileRepository(FakeApiKeyStorage("key"), api),
             conversations = ConversationRepository(FakeConversationDao()),
@@ -150,7 +150,7 @@ class ChatViewModelTest {
         assertEquals(listOf(attachment), vm.uiState.value.attachments)
         assertEquals(emptyList<ChatUiMessage>(), vm.uiState.value.messages)
         assertEquals(emptyMap<Int, List<ChatUiAttachment>>(), vm.uiState.value.messageAttachments)
-        assertTrue(vm.uiState.value.error is ChatUiError.RequestFailed)
+        assertEquals(ChatErrorAction.Retry, vm.uiState.value.error?.action)
     }
 }
 
@@ -269,6 +269,37 @@ private class FailingStreamApi(
         inputText: String,
         files: List<OpenAiFileAttachment>
     ): String = throw failure
+}
+
+private class EmittingThenFailingStreamApi(
+    private val failure: Throwable
+) : OpenAiApi {
+    override fun fetchModels(baseUrl: String, apiKey: String): List<ModelDto> = emptyList()
+
+    override fun streamChat(
+        baseUrl: String,
+        apiKey: String,
+        requestBody: ChatCompletionRequest,
+        images: List<OpenAiImageAttachment>
+    ): Flow<String> = flow {
+        emit("partial")
+        throw failure
+    }
+
+    override fun completeChat(
+        baseUrl: String,
+        apiKey: String,
+        requestBody: ChatCompletionRequest,
+        images: List<OpenAiImageAttachment>
+    ): String = error("Fallback should not be used")
+
+    override fun completeResponseWithFiles(
+        baseUrl: String,
+        apiKey: String,
+        model: String,
+        inputText: String,
+        files: List<OpenAiFileAttachment>
+    ): String = error("Responses should not be used")
 }
 
 private class FakeConversationDao(

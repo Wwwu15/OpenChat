@@ -68,8 +68,6 @@ fun AppNavHost(
         ) {
             HistoryScreen(
                 container = container,
-                markdownRenderingEnabled = markdownRenderingEnabled,
-                onToggleMarkdownRendering = onToggleMarkdownRendering,
                 onBack = { navController.navigateUp() },
                 onOpenChat = { conversationId ->
                     navController.navigate(AppRoutes.chat(conversationId)) {
