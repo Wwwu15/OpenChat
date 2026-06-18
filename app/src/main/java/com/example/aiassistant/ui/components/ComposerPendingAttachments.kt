@@ -41,17 +41,19 @@ import com.example.aiassistant.ui.theme.AiColors
 import com.example.aiassistant.ui.theme.AiRadius
 import com.example.aiassistant.ui.theme.AiSpacing
 
-data class PendingAttachmentItem(
-    val id: String,
-    val type: PendingAttachmentType,
-    val fileName: String,
-    val status: PendingAttachmentStatus,
-    val imageBitmap: Bitmap? = null
-)
+sealed interface PendingAttachmentItem {
+    val id: String
 
-enum class PendingAttachmentType {
-    Image,
-    Document
+    data class Image(
+        override val id: String,
+        val imageBitmap: Bitmap? = null
+    ) : PendingAttachmentItem
+
+    data class Document(
+        override val id: String,
+        val fileName: String,
+        val status: PendingAttachmentStatus
+    ) : PendingAttachmentItem
 }
 
 enum class PendingAttachmentStatus {
@@ -77,12 +79,12 @@ fun ComposerPendingAttachments(
         horizontalArrangement = Arrangement.spacedBy(AiSpacing.Sm)
     ) {
         attachments.forEach { attachment ->
-            when (attachment.type) {
-                PendingAttachmentType.Image -> PendingImageAttachmentCard(
+            when (attachment) {
+                is PendingAttachmentItem.Image -> PendingImageAttachmentCard(
                     attachment = attachment,
                     onRemoveAttachment = onRemoveAttachment
                 )
-                PendingAttachmentType.Document -> PendingDocumentAttachmentCard(
+                is PendingAttachmentItem.Document -> PendingDocumentAttachmentCard(
                     attachment = attachment,
                     onRemoveAttachment = onRemoveAttachment
                 )
@@ -93,7 +95,7 @@ fun ComposerPendingAttachments(
 
 @Composable
 private fun PendingImageAttachmentCard(
-    attachment: PendingAttachmentItem,
+    attachment: PendingAttachmentItem.Image,
     onRemoveAttachment: (String) -> Unit
 ) {
     val shape = RoundedCornerShape(18.dp)
@@ -139,7 +141,7 @@ private fun PendingImageAttachmentCard(
 
 @Composable
 private fun PendingDocumentAttachmentCard(
-    attachment: PendingAttachmentItem,
+    attachment: PendingAttachmentItem.Document,
     onRemoveAttachment: (String) -> Unit
 ) {
     val shape = RoundedCornerShape(18.dp)
