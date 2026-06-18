@@ -119,6 +119,24 @@ class ChatRepositoryTest {
         assertTrue(result.exceptionOrNull() is CancellationException)
         assertEquals(0, api.completeCalls)
     }
+
+    @Test
+    fun doesNotFallbackWhenStreamIsCancelledDuringFallback() = runTest {
+        val api = CancelledBeforeFallbackCompletesApi()
+        val repository = ChatRepository(api)
+
+        val result = runCatching {
+            repository.send(
+                profile = ApiProfile(modelId = "test-model"),
+                apiKey = "key",
+                priorMessages = emptyList(),
+                userText = "hello"
+            ).first()
+        }
+
+        assertTrue(result.exceptionOrNull() is CancellationException)
+        assertEquals(1, api.completeCalls)
+    }
 }
 
 private class CapturingApi(
@@ -193,6 +211,23 @@ private class CancelledStreamApi : OpenAiApi {
     override fun completeChat(baseUrl: String, apiKey: String, requestBody: ChatCompletionRequest, images: List<OpenAiImageAttachment>): String {
         completeCalls += 1
         return "fallback"
+    }
+
+    override fun completeResponseWithFiles(baseUrl: String, apiKey: String, model: String, inputText: String, files: List<OpenAiFileAttachment>): String = error("Responses should not be used")
+}
+
+private class CancelledBeforeFallbackCompletesApi : OpenAiApi {
+    var completeCalls = 0
+
+    override fun fetchModels(baseUrl: String, apiKey: String): List<ModelDto> = emptyList()
+
+    override fun streamChat(baseUrl: String, apiKey: String, requestBody: ChatCompletionRequest, images: List<OpenAiImageAttachment>): Flow<String> = flow {
+        throw IOException("stream unavailable")
+    }
+
+    override fun completeChat(baseUrl: String, apiKey: String, requestBody: ChatCompletionRequest, images: List<OpenAiImageAttachment>): String {
+        completeCalls += 1
+        throw CancellationException("stopped")
     }
 
     override fun completeResponseWithFiles(baseUrl: String, apiKey: String, model: String, inputText: String, files: List<OpenAiFileAttachment>): String = error("Responses should not be used")

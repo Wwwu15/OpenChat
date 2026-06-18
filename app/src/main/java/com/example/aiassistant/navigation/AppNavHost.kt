@@ -29,7 +29,7 @@ fun AppNavHost(
     darkModeEnabled: Boolean,
     markdownRenderingEnabled: Boolean,
     onToggleDarkMode: () -> Unit,
-    onToggleMarkdownRendering: () -> Unit
+    onToggleMarkdownRendering: (Boolean) -> Unit
 ) {
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = AppRoutes.Chat) {
