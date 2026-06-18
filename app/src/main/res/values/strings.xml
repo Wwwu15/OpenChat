@@ -53,4 +53,7 @@
     <string name="switch_to_light_mode">切换到非暗色模式</string>
     <string name="markdown_rendering_enabled_message">Markdown 渲染开启</string>
     <string name="markdown_rendering_disabled_message">Markdown 渲染关闭</string>
+    <string name="pending_attachment_ready">已就绪</string>
+    <string name="pending_attachment_parsing">解析中...</string>
+    <string name="pending_attachment_upload_failed">上传失败</string>
 </resources>
