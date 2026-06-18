@@ -204,6 +204,50 @@ class ChatViewModelTest {
         assertEquals(emptyMap<Int, List<ChatUiAttachment>>(), vm.uiState.value.messageAttachments)
         assertEquals(ChatErrorAction.Retry, vm.uiState.value.error?.action)
     }
+
+    @Test
+    fun removeAttachmentRemovesOnlyFirstMatchingPendingItem() = runTest {
+        val vm = ChatViewModel(
+            apiProfiles = ApiProfileRepository(FakeApiKeyStorage("key"), OpenAiClient()),
+            conversations = ConversationRepository(FakeConversationDao()),
+            chat = ChatRepository(BlockingStreamApi())
+        )
+
+        vm.addAttachment(
+            AttachmentPayload(
+                name = "same.pdf",
+                type = AttachmentType.Document,
+                dataUrl = "data:application/pdf;base64,1",
+                mimeType = "application/pdf"
+            )
+        )
+        vm.addAttachment(
+            AttachmentPayload(
+                name = "same.pdf",
+                type = AttachmentType.Document,
+                dataUrl = "data:application/pdf;base64,2",
+                mimeType = "application/pdf"
+            )
+        )
+        vm.addAttachment(
+            AttachmentPayload(
+                name = "other.jpg",
+                type = AttachmentType.Image,
+                dataUrl = "data:image/jpeg;base64,3"
+            )
+        )
+
+        vm.removeAttachment("same.pdf")
+
+        assertEquals(
+            listOf("same.pdf", "other.jpg"),
+            vm.uiState.value.attachments.map { it.name }
+        )
+        assertEquals(
+            listOf("data:application/pdf;base64,2", "data:image/jpeg;base64,3"),
+            vm.uiState.value.attachments.map { it.dataUrl }
+        )
+    }
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)

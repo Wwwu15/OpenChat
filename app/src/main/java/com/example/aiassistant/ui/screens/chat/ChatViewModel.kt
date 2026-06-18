@@ -82,9 +82,22 @@ class ChatViewModel(
     }
 
     fun removeAttachment(name: String) {
+        val target = _uiState.value.attachments.firstOrNull { it.name == name } ?: return
+        removeAttachment(target)
+    }
+
+    fun removeAttachment(target: AttachmentPayload) {
+        var removed = false
         _uiState.update { state ->
             state.copy(
-                attachments = state.attachments.filterNot { it.name == name },
+                attachments = state.attachments.filterNot { attachment ->
+                    if (!removed && attachment == target) {
+                        removed = true
+                        true
+                    } else {
+                        false
+                    }
+                },
                 error = null
             )
         }

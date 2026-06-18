@@ -44,6 +44,7 @@ fun AiComposer(
     onStopReceiving: () -> Unit,
     onSend: () -> Unit,
     pendingAttachments: List<PendingAttachmentItem> = emptyList(),
+    onRemovePendingAttachment: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -61,7 +62,7 @@ fun AiComposer(
         if (pendingAttachments.isNotEmpty()) {
             ComposerPendingAttachments(
                 attachments = pendingAttachments,
-                onRemoveAttachment = {},
+                onRemoveAttachment = onRemovePendingAttachment,
                 modifier = Modifier.fillMaxWidth()
             )
         }
