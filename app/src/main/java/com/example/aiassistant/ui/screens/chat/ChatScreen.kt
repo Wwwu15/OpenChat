@@ -132,7 +132,7 @@ fun ChatScreen(
             when (attachment.type) {
                 AttachmentType.Image -> PendingAttachmentItem.Image(
                     id = id,
-                    imageBitmap = null
+                    imageBitmap = attachment.dataUrl?.toBitmapOrNull()
                 )
                 AttachmentType.Document,
                 AttachmentType.Text -> PendingAttachmentItem.Document(
@@ -359,9 +359,13 @@ private fun pendingAttachmentId(index: Int, attachment: AttachmentPayload): Stri
     return "pending-$index-${attachment.name}"
 }
 
-private fun String.toImageBitmapOrNull() = runCatching {
+private fun String.toBitmapOrNull() = runCatching {
     val encoded = substringAfter("base64,", missingDelimiterValue = "")
     if (encoded.isBlank()) return@runCatching null
     val bytes = Base64.decode(encoded, Base64.DEFAULT)
-    BitmapFactory.decodeByteArray(bytes, 0, bytes.size)?.asImageBitmap()
+    BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+}.getOrNull()
+
+private fun String.toImageBitmapOrNull() = runCatching {
+    toBitmapOrNull()?.asImageBitmap()
 }.getOrNull()
