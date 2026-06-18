@@ -51,4 +51,6 @@
     <string name="check_api_settings">检查API设置</string>
     <string name="switch_to_dark_mode">切换到暗色模式</string>
     <string name="switch_to_light_mode">切换到非暗色模式</string>
+    <string name="markdown_rendering_enabled_message">Markdown 渲染开启</string>
+    <string name="markdown_rendering_disabled_message">Markdown 渲染关闭</string>
 </resources>

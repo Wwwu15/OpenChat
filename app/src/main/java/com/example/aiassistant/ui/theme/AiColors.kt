@@ -12,6 +12,8 @@ data class AiColorPalette(
     val surface: Color,
     val cardSurface: Color,
     val surfaceWarm: Color,
+    val overlayBackground: Color,
+    val overlayText: Color,
     val textPrimary: Color,
     val textSecondary: Color,
     val muted: Color,
@@ -36,6 +38,8 @@ val LightAiPalette = AiColorPalette(
     surface = Color.White,
     cardSurface = Color(0xFFFCFCFD),
     surfaceWarm = Color(0xFFEEF3F7),
+    overlayBackground = Color.White,
+    overlayText = Color(0xFF101418),
     textPrimary = Color(0xFF101418),
     textSecondary = Color(0xFF2F3944),
     muted = Color(0xFF7B8794),
@@ -57,6 +61,8 @@ val DarkAiPalette = AiColorPalette(
     surface = Color(0xFF20272F),
     cardSurface = Color(0xFF20272F),
     surfaceWarm = Color(0xFF161F27),
+    overlayBackground = Color(0xFF20272F),
+    overlayText = Color(0xFFEAF0F6),
     textPrimary = Color(0xFFEAF0F6),
     textSecondary = Color(0xFFC4CED8),
     muted = Color(0xFF8D9AA7),
@@ -82,6 +88,8 @@ object AiColors {
     val Surface: Color @Composable get() = LocalAiColors.current.surface
     val CardSurface: Color @Composable get() = LocalAiColors.current.cardSurface
     val SurfaceWarm: Color @Composable get() = LocalAiColors.current.surfaceWarm
+    val OverlayBackground: Color @Composable get() = LocalAiColors.current.overlayBackground
+    val OverlayText: Color @Composable get() = LocalAiColors.current.overlayText
     val TextPrimary: Color @Composable get() = LocalAiColors.current.textPrimary
     val TextSecondary: Color @Composable get() = LocalAiColors.current.textSecondary
     val Muted: Color @Composable get() = LocalAiColors.current.muted
