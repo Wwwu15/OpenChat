@@ -6,6 +6,7 @@ import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -103,5 +104,73 @@ class AiComposerTest {
         }
 
         composeRule.onAllNodesWithTag("pending_attachment_strip").assertCountEquals(0)
+    }
+
+    @Test
+    fun composerShowsOnlyOnePrimaryActionButton() {
+        composeRule.setContent {
+            AndroidAIAssistantTheme(darkTheme = false) {
+                AiComposer(
+                    value = "Hello",
+                    onValueChange = {},
+                    onAttach = {},
+                    isReceiving = false,
+                    onStopReceiving = {},
+                    onSend = {}
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("ai_composer_primary_action").assertIsDisplayed()
+        composeRule.onAllNodesWithTag("ai_composer_primary_action").assertCountEquals(1)
+    }
+
+    @Test
+    fun composerReceivingStateShowsStopActionAndStatus() {
+        composeRule.setContent {
+            AndroidAIAssistantTheme(darkTheme = false) {
+                AiComposer(
+                    value = "Hello",
+                    onValueChange = {},
+                    onAttach = {},
+                    isReceiving = true,
+                    onStopReceiving = {},
+                    onSend = {}
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("ai_composer_primary_action").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription(
+            InstrumentationRegistry.getInstrumentation().targetContext.getString(R.string.stop_output)
+        ).assertIsDisplayed()
+        composeRule.onNodeWithTag("ai_composer_receiving_status").assertIsDisplayed()
+    }
+
+    @Test
+    fun composerRendersPendingAttachmentsInsideContainer() {
+        composeRule.setContent {
+            AndroidAIAssistantTheme(darkTheme = false) {
+                AiComposer(
+                    value = "Hello",
+                    onValueChange = {},
+                    onAttach = {},
+                    isReceiving = false,
+                    onStopReceiving = {},
+                    onSend = {},
+                    pendingAttachments = listOf(
+                        PendingAttachmentItem.Document(
+                            id = "doc-1",
+                            fileName = "spec.pdf",
+                            status = PendingAttachmentStatus.Parsing
+                        )
+                    )
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("ai_composer_container").assertIsDisplayed()
+        composeRule.onNodeWithTag("pending_attachment_strip").assertIsDisplayed()
+        composeRule.onNodeWithTag("pending_attachment_document_card_doc-1").assertIsDisplayed()
     }
 }

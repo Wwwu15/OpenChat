@@ -74,7 +74,6 @@ fun ComposerPendingAttachments(
         modifier = modifier
             .fillMaxWidth()
             .horizontalScroll(rememberScrollState())
-            .padding(horizontal = AiSpacing.Lg)
             .testTag("pending_attachment_strip"),
         horizontalArrangement = Arrangement.spacedBy(AiSpacing.Sm)
     ) {

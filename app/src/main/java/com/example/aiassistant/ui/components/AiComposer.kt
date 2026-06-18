@@ -2,10 +2,13 @@ package com.example.aiassistant.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
@@ -25,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.example.aiassistant.R
 import com.example.aiassistant.ui.theme.AiColors
@@ -39,57 +43,117 @@ fun AiComposer(
     isReceiving: Boolean,
     onStopReceiving: () -> Unit,
     onSend: () -> Unit,
+    pendingAttachments: List<PendingAttachmentItem> = emptyList(),
     modifier: Modifier = Modifier
 ) {
-    Row(
+    Column(
         modifier = modifier
             .fillMaxWidth()
             .imePadding()
             .navigationBarsPadding()
             .padding(horizontal = AiSpacing.Lg, vertical = AiSpacing.Xl)
             .background(AiColors.Surface.copy(alpha = 0.92f), RoundedCornerShape(30.dp))
-            .padding(start = AiSpacing.Sm, end = AiSpacing.Sm),
-        verticalAlignment = Alignment.CenterVertically
+            .border(1.dp, AiColors.BorderSoft, RoundedCornerShape(30.dp))
+            .padding(AiSpacing.Md)
+            .testTag("ai_composer_container"),
+        verticalArrangement = Arrangement.spacedBy(AiSpacing.Sm)
     ) {
-        IconButton(onClick = onAttach) {
-            Icon(Icons.Rounded.Add, contentDescription = stringResource(R.string.add_attachment), tint = AiColors.TextPrimary)
-        }
-        TextField(
-            value = value,
-            onValueChange = onValueChange,
-            modifier = Modifier.weight(1f),
-            placeholder = { Text(stringResource(R.string.composer_placeholder), color = AiColors.Muted) },
-            singleLine = true,
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = Color.Transparent,
-                unfocusedContainerColor = Color.Transparent,
-                disabledContainerColor = Color.Transparent,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
+        if (pendingAttachments.isNotEmpty()) {
+            ComposerPendingAttachments(
+                attachments = pendingAttachments,
+                onRemoveAttachment = {},
+                modifier = Modifier.fillMaxWidth()
             )
-        )
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.Bottom
+        ) {
+            IconButton(
+                onClick = onAttach,
+                modifier = Modifier
+                    .size(46.dp)
+                    .background(AiColors.CardSurface, RoundedCornerShape(AiRadius.Pill))
+                    .border(1.dp, AiColors.BorderSoft, RoundedCornerShape(AiRadius.Pill))
+            ) {
+                Icon(
+                    Icons.Rounded.Add,
+                    contentDescription = stringResource(R.string.add_attachment),
+                    tint = AiColors.TextPrimary
+                )
+            }
+            Spacer(modifier = Modifier.width(AiSpacing.Sm))
+            TextField(
+                value = value,
+                onValueChange = onValueChange,
+                modifier = Modifier.weight(1f),
+                placeholder = { Text(stringResource(R.string.composer_placeholder), color = AiColors.Muted) },
+                minLines = 2,
+                maxLines = 5,
+                singleLine = false,
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    disabledContainerColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent
+                )
+            )
+            Spacer(modifier = Modifier.width(AiSpacing.Sm))
+            ComposerPrimaryActionButton(
+                isReceiving = isReceiving,
+                enabled = value.isNotBlank() || pendingAttachments.isNotEmpty(),
+                onStopReceiving = onStopReceiving,
+                onSend = onSend
+            )
+        }
+
+        if (isReceiving) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("ai_composer_receiving_status"),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.stop_output),
+                    color = AiColors.Meta
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ComposerPrimaryActionButton(
+    isReceiving: Boolean,
+    enabled: Boolean,
+    onStopReceiving: () -> Unit,
+    onSend: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .size(52.dp)
+            .background(
+                if (isReceiving) AiColors.Surface else AiColors.Accent.copy(alpha = if (enabled) 1f else 0.38f),
+                RoundedCornerShape(AiRadius.Pill)
+            )
+            .border(1.dp, AiColors.BorderSoft, RoundedCornerShape(AiRadius.Pill))
+            .testTag("ai_composer_primary_action"),
+        contentAlignment = Alignment.Center
+    ) {
         IconButton(
-            onClick = onStopReceiving,
-            enabled = isReceiving,
-            modifier = Modifier
-                .size(46.dp)
-                .background(AiColors.Surface, RoundedCornerShape(AiRadius.Pill))
-                .border(1.dp, AiColors.BorderSoft, RoundedCornerShape(AiRadius.Pill))
+            onClick = if (isReceiving) onStopReceiving else onSend,
+            enabled = if (isReceiving) true else enabled,
+            modifier = Modifier.size(52.dp)
         ) {
             Icon(
-                Icons.Rounded.Stop,
-                contentDescription = stringResource(R.string.stop_output),
-                tint = if (isReceiving) AiColors.TextPrimary else AiColors.Muted.copy(alpha = 0.45f)
+                imageVector = if (isReceiving) Icons.Rounded.Stop else Icons.Rounded.ArrowUpward,
+                contentDescription = stringResource(if (isReceiving) R.string.stop_output else R.string.send),
+                tint = if (isReceiving) AiColors.TextPrimary else AiColors.AccentOn
             )
-        }
-        Spacer(modifier = Modifier.width(AiSpacing.Sm))
-        IconButton(
-            onClick = onSend,
-            modifier = Modifier
-                .size(46.dp)
-                .background(AiColors.Accent, RoundedCornerShape(AiRadius.Pill))
-        ) {
-            Icon(Icons.Rounded.ArrowUpward, contentDescription = stringResource(R.string.send), tint = AiColors.AccentOn)
         }
     }
 }
