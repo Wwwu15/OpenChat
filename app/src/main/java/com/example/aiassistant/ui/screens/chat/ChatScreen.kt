@@ -213,6 +213,8 @@ fun ChatScreen(
                     )
                     if (state.isSending && index == state.messages.lastIndex && message.role == "assistant") {
                         ReceivingStatus(modifier = Modifier.padding(top = AiSpacing.Xs))
+                    } else if (state.outputStopped && index == state.messages.lastIndex && message.role == "assistant") {
+                        StoppedStatus(modifier = Modifier.padding(top = AiSpacing.Xs))
                     }
                     state.messageAttachments[index].orEmpty().forEach { attachment ->
                         ImageAttachmentBubble(
@@ -274,6 +276,18 @@ private fun ReceivingStatus(modifier: Modifier = Modifier) {
     Row(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
         Text(
             text = stringResource(R.string.outputting),
+            modifier = Modifier.padding(horizontal = AiSpacing.Lg),
+            color = AiColors.Meta,
+            fontSize = 12.sp
+        )
+    }
+}
+
+@Composable
+private fun StoppedStatus(modifier: Modifier = Modifier) {
+    Row(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
+        Text(
+            text = "已停止输出",
             modifier = Modifier.padding(horizontal = AiSpacing.Lg),
             color = AiColors.Meta,
             fontSize = 12.sp

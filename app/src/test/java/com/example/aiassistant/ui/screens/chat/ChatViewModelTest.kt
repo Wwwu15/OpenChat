@@ -60,10 +60,15 @@ class ChatViewModelTest {
         assertEquals("partial", vm.uiState.value.messages.last().content)
 
         vm.stopReceiving()
+        assertFalse(vm.uiState.value.isSending)
+        assertTrue(vm.uiState.value.outputStopped)
+        assertEquals(null, vm.uiState.value.error)
         advanceUntilIdle()
 
         assertFalse(vm.uiState.value.isSending)
         assertEquals("partial", vm.uiState.value.messages.last().content)
+        assertTrue(vm.uiState.value.outputStopped)
+        assertEquals(null, vm.uiState.value.error)
     }
 
     @Test

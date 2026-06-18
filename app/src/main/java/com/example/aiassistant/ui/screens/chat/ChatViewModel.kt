@@ -37,6 +37,7 @@ data class ChatUiState(
     val messageAttachments: Map<Int, List<ChatUiAttachment>> = emptyMap(),
     val attachments: List<AttachmentPayload> = emptyList(),
     val isSending: Boolean = false,
+    val outputStopped: Boolean = false,
     val error: ChatUiError? = null
 )
 
@@ -53,6 +54,7 @@ class ChatViewModel(
     private var observedConversationId: String? = null
     private var messagesJob: Job? = null
     private var sendJob: Job? = null
+    private var stopRequested = false
     private val _uiState = MutableStateFlow(ChatUiState())
     val uiState: StateFlow<ChatUiState> = _uiState
 
@@ -61,10 +63,11 @@ class ChatViewModel(
     }
 
     fun updateInput(value: String) {
-        _uiState.update { it.copy(input = value, error = null) }
+        _uiState.update { it.copy(input = value, error = null, outputStopped = false) }
     }
 
     fun newChat() {
+        stopRequested = false
         sendJob?.cancel()
         conversationId = UUID.randomUUID().toString()
         observeConversation(null)
@@ -78,7 +81,7 @@ class ChatViewModel(
         } else {
             null
         }
-        _uiState.update { it.copy(attachments = it.attachments + payload, error = warning) }
+        _uiState.update { it.copy(attachments = it.attachments + payload, error = warning, outputStopped = false) }
     }
 
     fun removeAttachment(name: String) {
@@ -98,13 +101,14 @@ class ChatViewModel(
                         false
                     }
                 },
-                error = null
+                error = null,
+                outputStopped = false
             )
         }
     }
 
     fun showAttachmentError(message: String) {
-        _uiState.update { it.copy(error = ChatUiError.unsupportedAttachment(message)) }
+        _uiState.update { it.copy(error = ChatUiError.unsupportedAttachment(message), outputStopped = false) }
     }
 
     fun dismissError() {
@@ -113,7 +117,7 @@ class ChatViewModel(
 
     fun retryLastSend() {
         val attempt = lastAttempt ?: return
-        _uiState.update { it.copy(input = attempt.input, attachments = attempt.attachments, error = null) }
+        _uiState.update { it.copy(input = attempt.input, attachments = attempt.attachments, error = null, outputStopped = false) }
         send()
     }
 
@@ -129,10 +133,11 @@ class ChatViewModel(
         val key = apiProfiles.apiKey()
         if (key.isBlank()) {
             lastAttempt = PendingSend(originalInput, attachments)
-            _uiState.update { it.copy(error = ChatUiError.missingApiKey()) }
+            _uiState.update { it.copy(error = ChatUiError.missingApiKey(), outputStopped = false) }
             return
         }
 
+        stopRequested = false
         lastAttempt = PendingSend(originalInput, attachments)
         lastStableMessages = current.messages
         lastStableAttachments = current.messageAttachments
@@ -147,6 +152,7 @@ class ChatViewModel(
                     input = "",
                     attachments = emptyList(),
                     isSending = true,
+                    outputStopped = false,
                     error = null,
                     messages = it.messages + ChatUiMessage("user", messageText) + ChatUiMessage("assistant", ""),
                     messageAttachments = if (attachments.isEmpty()) {
@@ -183,6 +189,14 @@ class ChatViewModel(
                         conversations.addMessage(conversationId, "assistant", assistant.toString(), profile.modelId)
                     }
                 }
+                if (!stopRequested) {
+                    _uiState.update { state ->
+                        state.copy(
+                            error = null,
+                            outputStopped = true
+                        )
+                    }
+                }
             } catch (error: Throwable) {
                 _uiState.update {
                     it.copy(
@@ -190,6 +204,7 @@ class ChatViewModel(
                         messageAttachments = lastStableAttachments,
                         input = originalInput,
                         attachments = attachments,
+                        outputStopped = false,
                         error = ChatUiError.requestFailed(
                             if (attachments.any { attachment -> attachment.type == AttachmentType.Document }) {
                                 "文件直传失败：${error.readableMessage()}"
@@ -200,13 +215,24 @@ class ChatViewModel(
                     )
                 }
             } finally {
-                _uiState.update { it.copy(isSending = false) }
+                if (!stopRequested) {
+                    _uiState.update { it.copy(isSending = false) }
+                }
+                stopRequested = false
                 sendJob = null
             }
         }
     }
 
     fun stopReceiving() {
+        stopRequested = true
+        _uiState.update {
+            it.copy(
+                isSending = false,
+                outputStopped = true,
+                error = null
+            )
+        }
         sendJob?.cancel()
     }
 

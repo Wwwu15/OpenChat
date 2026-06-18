@@ -71,6 +71,8 @@ class ChatRepository(
                     client.completeChat(profile.baseUrl, apiKey, request.copy(stream = false), images)
                 }
                 emit(response)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
             } catch (failure: Throwable) {
                 val original = streamFailure
                 if (original != null) {
