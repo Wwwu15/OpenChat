@@ -16,12 +16,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.aiassistant.ui.theme.AiColors
 import com.example.aiassistant.ui.theme.AiRadius
 import com.example.aiassistant.ui.theme.AiSpacing
+import com.mikepenz.markdown.m3.Markdown
 
 @Composable
 fun AiCard(
@@ -63,13 +65,17 @@ fun AiCard(
 }
 
 @Composable
-fun MessageBubble(text: String, isUser: Boolean, modifier: Modifier = Modifier) {
+fun MessageBubble(
+    text: String,
+    isUser: Boolean,
+    markdownRenderingEnabled: Boolean,
+    modifier: Modifier = Modifier
+) {
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start
     ) {
-        Text(
-            text = text,
+        Box(
             modifier = Modifier
                 .widthIn(max = 330.dp)
                 .background(
@@ -77,11 +83,19 @@ fun MessageBubble(text: String, isUser: Boolean, modifier: Modifier = Modifier) 
                     RoundedCornerShape(22.dp)
                 )
                 .border(1.dp, AiColors.BorderSoft, RoundedCornerShape(22.dp))
-                .padding(horizontal = AiSpacing.Lg, vertical = AiSpacing.Md),
-            color = AiColors.TextPrimary,
-            fontSize = 14.sp,
-            lineHeight = 21.sp
-        )
+                .padding(horizontal = AiSpacing.Lg, vertical = AiSpacing.Md)
+        ) {
+            if (!isUser && markdownRenderingEnabled) {
+                Markdown(content = text)
+            } else {
+                Text(
+                    text = text,
+                    color = AiColors.TextPrimary,
+                    fontSize = 14.sp,
+                    lineHeight = 21.sp
+                )
+            }
+        }
     }
 }
 
@@ -114,6 +128,29 @@ fun StatusPill(text: String, tone: StatusTone = StatusTone.Success) {
 }
 
 enum class StatusTone { Success, Warning, Danger }
+
+@Composable
+fun FloatingTextBanner(
+    text: String,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .shadow(8.dp, RoundedCornerShape(AiRadius.Pill))
+            .background(
+                color = AiColors.OverlayBackground,
+                shape = RoundedCornerShape(AiRadius.Pill)
+            )
+            .padding(horizontal = AiSpacing.Xl, vertical = AiSpacing.Md)
+    ) {
+        Text(
+            text = text,
+            color = AiColors.OverlayText,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium
+        )
+    }
+}
 
 @Composable
 fun SettingsRow(

@@ -23,6 +23,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val darkModeEnabled by container.appPreferences.darkModeEnabled.collectAsState(initial = false)
+            val markdownRenderingEnabled by container.appPreferences.markdownRenderingEnabled.collectAsState(initial = true)
             val scope = rememberCoroutineScope()
             AndroidAIAssistantTheme(darkTheme = darkModeEnabled) {
                 val systemBarColor = AiColors.SystemBar
@@ -37,9 +38,15 @@ class MainActivity : ComponentActivity() {
                 AppNavHost(
                     container = container,
                     darkModeEnabled = darkModeEnabled,
+                    markdownRenderingEnabled = markdownRenderingEnabled,
                     onToggleDarkMode = {
                         scope.launch {
                             container.appPreferences.toggleDarkModeEnabled()
+                        }
+                    },
+                    onToggleMarkdownRendering = {
+                        scope.launch {
+                            container.appPreferences.setMarkdownRenderingEnabled(!markdownRenderingEnabled)
                         }
                     }
                 )

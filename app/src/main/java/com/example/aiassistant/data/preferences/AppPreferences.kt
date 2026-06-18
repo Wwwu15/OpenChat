@@ -38,9 +38,11 @@ class AppPreferences(private val context: Context) : ApiProfilePreferences {
         val Profiles = stringPreferencesKey("api_profiles")
         val ActiveProfileId = stringPreferencesKey("active_profile_id")
         val DarkModeEnabled = booleanPreferencesKey("dark_mode_enabled")
+        val MarkdownRenderingEnabled = booleanPreferencesKey("markdown_rendering_enabled")
     }
 
     val darkModeEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.DarkModeEnabled] ?: false }
+    val markdownRenderingEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.MarkdownRenderingEnabled] ?: true }
 
     suspend fun setDarkModeEnabled(enabled: Boolean) {
         context.dataStore.edit { prefs ->
@@ -51,6 +53,12 @@ class AppPreferences(private val context: Context) : ApiProfilePreferences {
     suspend fun toggleDarkModeEnabled() {
         context.dataStore.edit { prefs ->
             prefs[Keys.DarkModeEnabled] = !(prefs[Keys.DarkModeEnabled] ?: false)
+        }
+    }
+
+    suspend fun setMarkdownRenderingEnabled(enabled: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[Keys.MarkdownRenderingEnabled] = enabled
         }
     }
 

@@ -2,8 +2,13 @@ package com.example.aiassistant.ui.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -14,6 +19,9 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.example.aiassistant.ui.theme.AiColors
@@ -51,6 +59,34 @@ fun PillActions(content: @Composable () -> Unit) {
         horizontalArrangement = Arrangement.spacedBy(AiSpacing.Sm)
     ) {
         content()
+    }
+}
+
+@Composable
+fun CapsuleSwitch(
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val trackColor = if (checked) AiColors.Success else Color.White
+    val thumbOffset = if (checked) 12.dp else (-12).dp
+
+    Box(
+        modifier = modifier
+            .size(height = 32.dp, width = 52.dp)
+            .clip(RoundedCornerShape(AiRadius.Pill))
+            .background(trackColor)
+            .border(1.dp, if (checked) AiColors.Success else AiColors.BorderSoft, RoundedCornerShape(AiRadius.Pill))
+            .clickable { onCheckedChange(!checked) },
+        contentAlignment = Alignment.Center
+    ) {
+        Box(
+            modifier = Modifier
+                .offset(x = thumbOffset)
+                .size(24.dp)
+                .background(AiColors.Surface, RoundedCornerShape(AiRadius.Pill))
+                .border(1.dp, AiColors.BorderSoft, RoundedCornerShape(AiRadius.Pill))
+        )
     }
 }
 
