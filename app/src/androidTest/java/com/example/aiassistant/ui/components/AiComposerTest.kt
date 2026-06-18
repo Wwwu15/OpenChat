@@ -3,11 +3,12 @@ package com.example.aiassistant.ui.components
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
+import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
@@ -16,6 +17,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.example.aiassistant.R
 import com.example.aiassistant.ui.theme.AndroidAIAssistantTheme
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -67,6 +69,33 @@ class AiComposerTest {
 
         composeRule.onAllNodesWithText("photo.png").assertCountEquals(0)
         composeRule.onNodeWithTag("pending_attachment_image_thumb_img-1").assertIsDisplayed()
+    }
+
+    @Test
+    fun imagePendingRemoveButtonKeepsCompactSize() {
+        var removeButtonWidth = 0f
+        var removeButtonHeight = 0f
+
+        composeRule.setContent {
+            AndroidAIAssistantTheme(darkTheme = false) {
+                ComposerPendingAttachments(
+                    attachments = listOf(
+                        PendingAttachmentItem.Image(
+                            id = "img-1"
+                        )
+                    )
+                )
+            }
+        }
+
+        val removeBounds = composeRule.onNodeWithTag("pending_attachment_remove_img-1")
+            .assertIsDisplayed()
+            .getBoundsInRoot()
+        removeButtonWidth = (removeBounds.right - removeBounds.left).value
+        removeButtonHeight = (removeBounds.bottom - removeBounds.top).value
+
+        assertTrue(removeButtonWidth <= 30f)
+        assertTrue(removeButtonHeight <= 30f)
     }
 
     @Test

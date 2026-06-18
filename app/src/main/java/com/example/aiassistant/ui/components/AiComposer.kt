@@ -8,10 +8,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -67,32 +65,38 @@ fun AiComposer(
             )
         }
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.Bottom
-        ) {
-            IconButton(
-                onClick = onAttach,
-                modifier = Modifier
-                    .size(46.dp)
-                    .background(AiColors.CardSurface, RoundedCornerShape(AiRadius.Pill))
-                    .border(1.dp, AiColors.BorderSoft, RoundedCornerShape(AiRadius.Pill))
-            ) {
-                Icon(
-                    Icons.Rounded.Add,
-                    contentDescription = stringResource(R.string.add_attachment),
-                    tint = AiColors.TextPrimary
-                )
-            }
-            Spacer(modifier = Modifier.width(AiSpacing.Sm))
+        Box(modifier = Modifier.fillMaxWidth()) {
             TextField(
                 value = value,
                 onValueChange = onValueChange,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.fillMaxWidth(),
                 placeholder = { Text(stringResource(R.string.composer_placeholder), color = AiColors.Muted) },
                 minLines = 2,
                 maxLines = 5,
                 singleLine = false,
+                leadingIcon = {
+                    IconButton(
+                        onClick = onAttach,
+                        modifier = Modifier
+                            .size(46.dp)
+                            .background(AiColors.CardSurface, RoundedCornerShape(AiRadius.Pill))
+                            .border(1.dp, AiColors.BorderSoft, RoundedCornerShape(AiRadius.Pill))
+                    ) {
+                        Icon(
+                            Icons.Rounded.Add,
+                            contentDescription = stringResource(R.string.add_attachment),
+                            tint = AiColors.TextPrimary
+                        )
+                    }
+                },
+                trailingIcon = {
+                    ComposerPrimaryActionButton(
+                        isReceiving = isReceiving,
+                        enabled = value.isNotBlank() || pendingAttachments.isNotEmpty(),
+                        onStopReceiving = onStopReceiving,
+                        onSend = onSend
+                    )
+                },
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
@@ -100,13 +104,6 @@ fun AiComposer(
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent
                 )
-            )
-            Spacer(modifier = Modifier.width(AiSpacing.Sm))
-            ComposerPrimaryActionButton(
-                isReceiving = isReceiving,
-                enabled = value.isNotBlank() || pendingAttachments.isNotEmpty(),
-                onStopReceiving = onStopReceiving,
-                onSend = onSend
             )
         }
 

@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,12 +17,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -131,7 +132,7 @@ private fun PendingImageAttachmentCard(
             tint = Color.White,
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(4.dp)
+                .padding(6.dp)
         ) {
             onRemoveAttachment(attachment.id)
         }
@@ -209,17 +210,19 @@ private fun RemoveAttachmentButton(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    IconButton(
-        onClick = onClick,
+    Box(
         modifier = modifier
-            .size(30.dp)
+            .size(24.dp)
             .background(containerColor, RoundedCornerShape(AiRadius.Pill))
-            .testTag("pending_attachment_remove_$attachmentId")
+            .clickable(onClick = onClick)
+            .testTag("pending_attachment_remove_$attachmentId"),
+        contentAlignment = Alignment.Center
     ) {
         Icon(
             imageVector = Icons.Rounded.Close,
             contentDescription = stringResource(R.string.remove_attachment),
-            tint = tint
+            tint = tint,
+            modifier = Modifier.size(14.dp)
         )
     }
 }

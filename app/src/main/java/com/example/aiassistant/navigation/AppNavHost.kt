@@ -28,7 +28,8 @@ fun AppNavHost(
     container: AppContainer,
     darkModeEnabled: Boolean,
     markdownRenderingEnabled: Boolean,
-    onToggleDarkMode: () -> Unit
+    onToggleDarkMode: () -> Unit,
+    onToggleMarkdownRendering: (Boolean) -> Unit
 ) {
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = AppRoutes.Chat) {
@@ -67,6 +68,8 @@ fun AppNavHost(
         ) {
             HistoryScreen(
                 container = container,
+                markdownRenderingEnabled = markdownRenderingEnabled,
+                onToggleMarkdownRendering = onToggleMarkdownRendering,
                 onBack = { navController.navigateUp() },
                 onOpenChat = { conversationId ->
                     navController.navigate(AppRoutes.chat(conversationId)) {

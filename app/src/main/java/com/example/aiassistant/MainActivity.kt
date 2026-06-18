@@ -43,6 +43,11 @@ class MainActivity : ComponentActivity() {
                         scope.launch {
                             container.appPreferences.toggleDarkModeEnabled()
                         }
+                    },
+                    onToggleMarkdownRendering = { enabled ->
+                        scope.launch {
+                            container.appPreferences.setMarkdownRenderingEnabled(enabled)
+                        }
                     }
                 )
             }
