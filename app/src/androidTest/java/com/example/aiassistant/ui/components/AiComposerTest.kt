@@ -3,6 +3,8 @@ package com.example.aiassistant.ui.components
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onAllNodesWithTag
@@ -170,7 +172,11 @@ class AiComposerTest {
         }
 
         composeRule.onNodeWithTag("ai_composer_container").assertIsDisplayed()
-        composeRule.onNodeWithTag("pending_attachment_strip").assertIsDisplayed()
-        composeRule.onNodeWithTag("pending_attachment_document_card_doc-1").assertIsDisplayed()
+        composeRule.onAllNodes(
+            hasTestTag("pending_attachment_strip") and hasAnyAncestor(hasTestTag("ai_composer_container"))
+        ).assertCountEquals(1)
+        composeRule.onAllNodes(
+            hasTestTag("pending_attachment_document_card_doc-1") and hasAnyAncestor(hasTestTag("ai_composer_container"))
+        ).assertCountEquals(1)
     }
 }
